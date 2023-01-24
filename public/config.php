@@ -1,0 +1,12 @@
+<?php
+$_SESSION['HOST_info']=$_SERVER['HTTP_USER_AGENT'];
+$_SESSION['PUBLIC_ROOT']=$_SERVER['DOCUMENT_ROOT'];
+$_SESSION['DOCUMENT_ROOT']=$env_path;
+
+$_SESSION['FOOTER']='&copy safia 2022';
+
+
+
+
+
+?>

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: modernmvc-app
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../:/var/www
+      - ./php.ini:/usr/local/etc/php/conf.d/php.ini
+  nginx:
+    build:
+      context: ./
+      dockerfile: Dockerfile_nginx.docker
+    container_name: modernmvc-nginx
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d/
+    depends_on:
+        - app
+
+  db:
+   container_name: modernmvc-db
+   image: mysql:8.0
+   tty: true
+   stdin_open: true
+   volumes:
+      - ../storage/mysql:/var/lib/mysql
+   restart: always
+   environment:
+     MYSQL_ROOT_PASSWORD: depart@2023
+   ports:
+     - 3306:3306
+    
+
+        

@@ -1,0 +1,37 @@
+{
+    "name": "autoload/modernmvc",
+    "authors": [
+        {
+            "name": "Joshua M.S",
+            "email": "mojjysolo1@gmail.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.4",
+        "phpoffice/phpspreadsheet": "^1.13",
+        "phpunit/phpunit": "9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Controllers\\": "Controllers",
+            "Classes\\":"Classes",
+           "":[
+            "classes",
+            "classes/Exceptions",
+            "Controllers",
+            "Models"
+           ]
+        }
+        
+
+    },
+    "autoload-dev": {
+        "psr-4": {
+           "":[
+            "tests/Unit"
+           ]
+        }
+        
+
+    }
+}
