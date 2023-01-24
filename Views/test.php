@@ -7,7 +7,7 @@ $data=[
 
  $db->set('test',$data);
 
- 
+ echo "hi";
 echo "<pre>";
 // $resp=$db->select("select * from test where item=:item");
 // var_dump($db->getCount());
