@@ -166,9 +166,6 @@ $this->rowValues=$sql->fetchAll(PDO::FETCH_ASSOC);
 return $this->rowValues;
 }
 
-
-
-
 public function insertValues(){	
 	
 try{

@@ -6,44 +6,33 @@
  */
 abstract class QueryBuilder{
 
-    protected static $database=null;
+    protected $database=null;
     public string $error_msg;
     public int $rowCount=0;
     public int $insert_id;
+    public array $data=[];
     
     public function __construct(Database $conn) {
-         self::$database=$conn;
-
-        
+         $this->database=$conn;
     }
-    
-    public function fetch($column,$cell,$assoc=false):array
+
+    public function parseData(array $data_array=[])
     {
-        self::$database->set($this->table,$column,$cell);
-        $this->rowCount=self::$database->getCount();
+        $this->data=$data_array;
+        $this->database->set($this->table,$data_array);
+
+        return $this;
+    }
+
+
+    public function fetchAssoc(string $AND_OR='and'):array
+    {
        
-        $resp_arr=self::$database->getValues($assoc);
+        $this->rowCount=$this->database->getCount($AND_OR);
+       
+        $resp_arr=$this->database->getValues($AND_OR);
 
         return is_array($resp_arr)?$resp_arr:[];
-
-    }
-
-    public function fetchPairs($column1,$row1,$column2,$row2):array
-    {
-        self::$database->setPairs($this->table,$column1,$row1,$column2,$row2);
-        $this->rowCount=self::$database->getPairCount();
-       
-        $resp_arr=self::$database->getPairValues();
-
-        return is_array($resp_arr)?$resp_arr:[];
-
-    }
-
-
-    public function fetchAssoc($column,$cell):array
-    {
-       
-        return $this->fetch($column,$cell,true);
         
     }
 
@@ -53,91 +42,83 @@ abstract class QueryBuilder{
         if(empty($statement))
            $statement="SELECT * FROM $this->table";
 
-        $data=self::$database->selectAllValues($statement);
-        $this->rowCount=self::$database->numRows;
+        $data=$this->database->selectAllValues($statement);
+        $this->rowCount=$this->database->numRows;
         return is_array($data)?$data:[];
     }
 
     public function fetchRowCount($sql):int
     {
-        $this->rowCount=self::$database->rowCount($sql)??0;
+        $this->rowCount=$this->database->rowCount($sql)??0;
         return $this->rowCount;
     }
     
 
-    public function store(array $arr_insert_values):bool
+    public function store():bool
     {
-        
-      foreach($arr_insert_values as $key=>$val){
-          if(!in_array($key,$this->columns)){
-             $this->error_msg=$key." Column on ".$this->table." table Doesn't  Exist";
-             return false;
-          
-          }
+        $client_fields=array_keys($this->data);
+        $invalid_matches=array_diff($this->columns,$client_fields);
+
+        if(count($invalid_matches)>0){
+
+            $this->error_msg="Invalid ".join(',',$invalid_matches)." Columns on ".$this->table." table.";
+            throw new TableFieldsDontMatchException($this->error_msg);
+        }
+ 
+
+      if(count($this->data)!==count($this->columns)){
+             throw new \Exception('Table fields dont match '.$this->table);
       }
+    
 
-      if(count($arr_insert_values)!==count($this->columns)){
-             $this->error_msg="Some table felds are missing";
-             return false;
-      }
-     
-
-      self::$database->set($this->table,1,1);
-
-      $response=self::$database->insertValues($arr_insert_values);
+      $response=$this->database->insertValues();
 
       if(!$response){
-        $this->error_msg=self::$database->error;
+        echo $this->database->error;
         return false;
       }
           
-      $this->insert_id=self::$database->insert_id;
+      $this->insert_id=$this->database->insert_id;
       
       return $response;
      
     }
-
-
-
     
-    public function update(array $arr_insert_values,$update_row_field,$update_row_val):bool
+    public function update($update_row_field,$update_row_val):bool
     {
-      foreach($arr_insert_values as $key=>$val){
-          if(!in_array($key,$this->columns)){
-             $this->error_msg=$key." Column on ".$this->table." table Doesn't  Exist";
-             return false;
-          
-          }
+      $client_fields=array_keys($this->data);
+      $invalid_matches=array_diff($client_fields,$this->columns);
+
+      if(count($invalid_matches)>0){
+
+          $this->error_msg="Invalid ".join(',',$invalid_matches)." Columns on ".$this->table." table.";
+          throw new TableFieldsDontMatchException($this->error_msg);
       }
 
-      self::$database->set($this->table,1,1);
-
-      $response=self::$database->update($arr_insert_values,$update_row_field,$update_row_val);
+      $response=$this->database->update($update_row_field,$update_row_val);
 
       return $response??false;
     }
 
-    public function updateIn(array $arr_insert_values,$fieldname,array $row_ids,bool $flag_NOTIN=false):bool
+    public function updateIn($fieldname,array $row_ids,bool $flag_NOTIN=false):bool
     {
-      foreach($arr_insert_values as $key=>$val){
-          if(!in_array($key,$this->columns)){
-             $this->error_msg=$key." Column on ".$this->table." table Doesn't  Exist";
-             return false;
-          
-          }
-      }
+        $client_fields=array_keys($this->data);
+        $invalid_matches=array_diff($client_fields,$this->columns);
+  
+        if(count($invalid_matches)>0){
+  
+            $this->error_msg="Invalid ".join(',',$invalid_matches)." Columns on ".$this->table." table.";
+            throw new TableFieldsDontMatchException($this->error_msg);
+        }
 
-      self::$database->set($this->table,1,1);
-
-      $response=self::$database->updateIn($arr_insert_values,$fieldname,$row_ids,$flag_NOTIN);
+      $response=$this->database->updateIn($fieldname,$row_ids,$flag_NOTIN);
 
       return $response??false;
     }
 
-    public function delete($field,$row):bool
+    public function delete(string $AND_OR='and'):bool
     {
-        self::$database->set($this->table,$field,$row);
-        $response=self::$database->delete();
+        $response=$this->database->delete($AND_OR);
         return $response??false;
     }
 
