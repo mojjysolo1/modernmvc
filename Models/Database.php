@@ -11,9 +11,17 @@ public  $error;
 
 public function __construct(){
   try{
-         $this->conn = new PDO("mysql:host=".$_ENV['DB_HOST'].";dbname=".$_ENV['DB_DATABASE'].";port=".$_ENV['DB_PORT']."",$_ENV['DB_USER'],$_ENV['DB_PASS']);//;charset=utf8
-        $this->conn->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-		$this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);
+	   if(!$this->conn) 
+         $this->conn = new PDO(
+			"mysql:host=".$_ENV['DB_HOST'].";dbname=".$_ENV['DB_DATABASE'].";port=".$_ENV['DB_PORT']."",
+			$_ENV['DB_USER'],
+			$_ENV['DB_PASS'],
+			[
+				PDO::ATTR_EMULATE_PREPARES=>false,
+				PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+				PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
+			]
+		);
 		
 	}catch(PDOException $e){
 		
